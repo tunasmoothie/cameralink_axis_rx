@@ -19,11 +19,11 @@ module cameralink_base_rx_tb();
     )
     DUT(
         .cmlink_data_base(camdata),
-        .cmlink_strobe(camclk),
+        .cmlink_clk(camclk),
         .aclk(aclk),
         .aresetn(rstn),
         
-        .cmlink_clk_ref(camclkout),
+        .camclk_refout(camclkout),
         
         
         .m_axis_tdata(tdata),
