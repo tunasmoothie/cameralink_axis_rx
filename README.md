@@ -1,4 +1,4 @@
-CameraLink AXI-Stream Receiver(RX) Core
+## CameraLink AXI-Stream Receiver(RX) Core
 
 v1.0
 --------------------------------------------------------------
