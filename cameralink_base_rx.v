@@ -2,7 +2,7 @@
 
 module cameralink_base_rx #
 (
-    parameter AXIS_DATA_WIDTH = 32,
+    parameter AXIS_DATA_WIDTH = 24,
     parameter AXIS_KEEP_WIDTH = ((AXIS_DATA_WIDTH+7)/8),
     parameter AXIS_USER_WIDTH = 1
 )
@@ -52,7 +52,7 @@ module cameralink_base_rx #
     assign fifo_rden = ~RDRSTBUSY & ~FIFO_EMPTY & m_axis_tready;
     assign fifo_out_tvalid = fifo_out[32];
     assign fifo_in[35] = 10'b0;
-    
+    assign fifo_in[31:24] = 8'b0;
     
     /*
      * CameraLink to AXIS conversion module
