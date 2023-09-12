@@ -10,10 +10,6 @@ module cameralink_base_rx #
     // CameraLink-related IO
     input  wire [27:0]                 cmlink_data_base,
     input  wire                        cmlink_clk,
-    
-//    output wire                        cmlink_lval,
-//    output wire                        cmlink_fval,
-//    output wire                        cmlink_dval,
     output wire                        camclk_refout,
 
     // AXIS-related IO
@@ -64,7 +60,7 @@ module cameralink_base_rx #
     cmlink_axis_convert CM_TO_AXIS_inst(
         .cam_in(cmlink_data_base),
         .cam_clk(cam_clk),
-        .axis_tdata(fifo_in[31:0]),
+        .axis_tdata(fifo_in[23:0]),
         .axis_tvalid(fifo_in[32]),
         .axis_tlast(fifo_in[33]),
         .axis_tuser(fifo_in[34])
@@ -124,7 +120,7 @@ module cameralink_base_rx #
     */  
      
     always@(posedge aclk) begin
-        m_axis_tdata = fifo_out[31:0];
+        m_axis_tdata = fifo_out[23:0];
         m_axis_tlast = fifo_out[33];
         m_axis_tuser[0] = fifo_out[34];
         
@@ -138,21 +134,17 @@ endmodule
 
 
 
-
-
-
-
 module cmlink_axis_convert(
     input  wire [27:0]   cam_in,
     input  wire          cam_clk,
-    output wire [31:0]   axis_tdata,
+    output wire [23:0]   axis_tdata,
     output wire          axis_tlast,
     output wire          axis_tuser,
     output wire          axis_tvalid
 );
     
     reg [27:0] cam_ibuf0, cam_ibuf1;
-    reg [31:0] axis_tdata_buf;
+    reg [23:0] axis_tdata_buf;
     reg        axis_tlast_buf;
     reg        axis_tuser_buf;
     reg        axis_tvalid_buf;
@@ -229,11 +221,11 @@ module cmlink_axis_convert(
         // TDATA data pass determination
         if(lval & fval == 1'b1)begin
             axis_tdata_buf[23:0] = cam_ibuf1;
-            axis_tdata_buf[31:24] = 8'b0;
+            //axis_tdata_buf[31:24] = 8'b0;
             axis_tvalid_buf = 1;
         end
         else begin
-            axis_tdata_buf[31:0] = 32'b0;
+            axis_tdata_buf[23:0] = 24'b0;
             axis_tvalid_buf = 0;
         end
         
