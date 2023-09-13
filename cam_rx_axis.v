@@ -34,8 +34,8 @@ module cam_in_axi4s #
    
     // Reset variables
     wire        rst = ~aresetn;
-    reg         rst_busy = 0;
-    reg         axis_wait_newframe = 0;
+    reg         rst_busy = 1;
+    reg         axis_wait_newframe = 1;
     
 
   
