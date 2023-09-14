@@ -1,7 +1,7 @@
 module cam_in_axi4s #
 (
     parameter DATA_WIDTH = 24,
-    parameter KEEP_WIDTH = ((DATA_WIDTH+7)/8),
+    //parameter KEEP_WIDTH = ((DATA_WIDTH+7)/8),
     parameter USER_WIDTH = 1
 )
 (
@@ -19,7 +19,7 @@ module cam_in_axi4s #
     //input  wire                   aclken,
     input  wire                   aresetn,
     output wire [DATA_WIDTH-1:0]  m_axis_tdata,
-    output wire [KEEP_WIDTH-1:0]  m_axis_tkeep,
+    //output wire [KEEP_WIDTH-1:0]  m_axis_tkeep,
     output wire                   m_axis_tvalid,
     input  wire                   m_axis_tready,
     output wire                   m_axis_tlast,
@@ -37,7 +37,6 @@ module cam_in_axi4s #
     reg         rst_busy = 1;
     reg         axis_wait_newframe = 1;
     
-
   
     // ================================================
     // Input parsing
@@ -222,6 +221,7 @@ module cam_in_axi4s #
         rst_busy <= rst | (~(~fifo_wrrstbusy & ~fifo_wrrstbusy) & rst_busy);
         axis_wait_newframe <= rst | (~(obuf_tuser) & axis_wait_newframe);
     end    
+    
     
 endmodule
 
