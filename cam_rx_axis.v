@@ -37,6 +37,7 @@ module cam_in_axi4s #
     reg         rst_busy = 1;
     reg         axis_wait_newframe = 1;
     
+
   
     // ================================================
     // Input parsing
@@ -192,6 +193,14 @@ module cam_in_axi4s #
     reg                   obuf_tlast;
     reg                   obuf_tuser;
     
+    wire [7:0]            cm_port_a;
+    wire [7:0]            cm_port_b;
+    wire [7:0]            cm_port_c;
+    
+    assign cm_port_a = fifo_out[7:0];
+    assign cm_port_b = fifo_out[15:8];
+    assign cm_port_c = fifo_out[23:16];
+    
     assign m_axis_tdata[23:0] = obuf_tdata[23:0];
     assign m_axis_tvalid      = obuf_tvalid;
     assign m_axis_tlast       = obuf_tlast;
@@ -206,9 +215,9 @@ module cam_in_axi4s #
         end
         else begin
             //AXIS pixel data arrangment is R-B-G
-            obuf_tdata[23:16] = fifo_out[23:16];
-            obuf_tdata[15:8] = fifo_out[7:0];
-            obuf_tdata[7:0] = fifo_out[15:8];    
+            obuf_tdata[23:16] = cm_port_c;
+            obuf_tdata[15:8]  = cm_port_b;
+            obuf_tdata[7:0]   = cm_port_a;    
         end
 
     end
@@ -221,7 +230,6 @@ module cam_in_axi4s #
         rst_busy <= rst | (~(~fifo_wrrstbusy & ~fifo_wrrstbusy) & rst_busy);
         axis_wait_newframe <= rst | (~(obuf_tuser) & axis_wait_newframe);
     end    
-    
     
 endmodule
 
