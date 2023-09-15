@@ -33,8 +33,9 @@ module cam_in_axi4s #
 );
    
     // Reset variables
-    wire        rst = ~aresetn;
-    reg         rst_busy = 1;
+    reg         rst;
+    reg         rst_busy_camclk = 1;
+    reg         rst_busy_aclk = 1;
     reg         axis_wait_newframe = 1;
     
 
@@ -134,7 +135,7 @@ module cam_in_axi4s #
     assign fifo_in[26]    = frame_ready;
     assign fifo_in[35:27] = 8'b0;
     
-    assign fifo_wren = ~rst_busy & ~fifo_full; 
+    assign fifo_wren = ~rst_busy_camclk & ~fifo_full; 
     assign overflow = fifo_full;
     
     // Read-side
@@ -143,7 +144,7 @@ module cam_in_axi4s #
     wire            fifo_rdrstbusy;
     wire            fifo_empty;
     
-    assign fifo_rden = ~rst_busy & ~fifo_empty & m_axis_tready;
+    assign fifo_rden = ~rst_busy_aclk & ~fifo_empty & m_axis_tready;
     assign underflow = fifo_empty;
     
     // FIFO instantiation
@@ -209,7 +210,7 @@ module cam_in_axi4s #
     always @ (posedge aclk) begin
         obuf_tuser = fifo_out[26];
         obuf_tvalid = (axis_wait_newframe) ? 1'b0 : fifo_out[24];
-        obuf_tlast  = (axis_wait_newframe) ? 1'b0 : fifo_out[25];
+        obuf_tlast  = /*(axis_wait_newframe) ? 1'b0 :*/ fifo_out[25];
         if (fifo_out[24] == 0 || axis_wait_newframe) begin
             obuf_tdata[23:0] = 24'b0; 
         end
@@ -227,9 +228,14 @@ module cam_in_axi4s #
     // Reset subprocess
     // ================================================
     always @ (posedge aclk) begin
-        rst_busy <= rst | (~(~fifo_wrrstbusy & ~fifo_wrrstbusy) & rst_busy);
+        rst <= ~aresetn;
+        rst_busy_aclk <= rst | (~(~fifo_rdrstbusy) & rst_busy_aclk);
         axis_wait_newframe <= rst | (~(obuf_tuser) & axis_wait_newframe);
-    end    
+    end
+    
+    always @ (posedge cam_clk) begin
+        rst_busy_camclk <= rst | (~(~fifo_wrrstbusy) & rst_busy_camclk);
+    end        
     
 endmodule
 
