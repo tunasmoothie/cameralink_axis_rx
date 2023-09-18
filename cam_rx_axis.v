@@ -15,7 +15,7 @@ module cam_in_axi4s #
     /*
      * AXI output
      */
-    input  wire                   aclk,
+    input  wire                   axis_clk,
     //input  wire                   aclken,
     input  wire                   aresetn,
     output wire [DATA_WIDTH-1:0]  m_axis_tdata,
@@ -31,6 +31,9 @@ module cam_in_axi4s #
      output wire                  overflow,
      output wire                  underflow
 );
+   
+    wire        aclk;
+    
    
     // Reset variables
     reg         rst;
@@ -197,6 +200,9 @@ module cam_in_axi4s #
     wire [7:0]            cm_port_a;
     wire [7:0]            cm_port_b;
     wire [7:0]            cm_port_c;
+    
+    
+    assign aclk = axis_clk & m_axis_tready;
     
     assign cm_port_a = fifo_out[7:0];
     assign cm_port_b = fifo_out[15:8];
