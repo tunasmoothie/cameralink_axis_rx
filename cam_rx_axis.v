@@ -215,7 +215,10 @@ module cam_in_axi4s #
     
     always @ (posedge aclk) begin
         obuf_tuser = fifo_out[26];
-        obuf_tvalid = (axis_wait_newframe) ? 1'b0 : (fifo_out[24] & ~fifo_empty);
+        if(~axis_wait_newframe & fifo_out[24] & ~fifo_empty)
+            obuf_tvalid = 1'b1;
+        else    
+            obuf_tvalid = 1'b0;
         obuf_tlast  = /*(axis_wait_newframe) ? 1'b0 :*/ fifo_out[25];
         if (fifo_out[24] == 0 || axis_wait_newframe) begin
             obuf_tdata[23:0] = 24'b0; 
