@@ -13,7 +13,7 @@ module cam_in_axi4s #
     
     
     /*
-     * AXI output
+     * AXIS output
      */
     input  wire                   axis_clk,
     //input  wire                   aclken,
