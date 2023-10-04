@@ -208,27 +208,39 @@ module cam_in_axi4s #
     assign cm_port_b = fifo_out[15:8];
     assign cm_port_c = fifo_out[23:16];
     
-    assign m_axis_tdata[23:0] = obuf_tdata[23:0];
-    assign m_axis_tvalid      = obuf_tvalid;
-    assign m_axis_tlast       = obuf_tlast;
-    assign m_axis_tuser       = obuf_tuser;
+//    assign m_axis_tdata[23:0] = obuf_tdata[23:0];
+//    assign m_axis_tvalid      = obuf_tvalid;
+//    assign m_axis_tlast       = obuf_tlast;
+//    assign m_axis_tuser       = obuf_tuser;
+
+    assign m_axis_tuser        = obuf_tuser;
+    
+    assign m_axis_tdata[23:16] = cm_port_c;
+    assign m_axis_tdata[15:8]  = cm_port_b;
+    assign m_axis_tdata[7:0]   = cm_port_a;
+    assign m_axis_tvalid       = ~axis_wait_newframe & fifo_out[24] & ~fifo_empty;
+    assign m_axis_tlast        = fifo_out[25];
+
     
     always @ (posedge aclk) begin
         obuf_tuser = fifo_out[26];
-        if(~axis_wait_newframe & fifo_out[24] & ~fifo_empty)
-            obuf_tvalid = 1'b1;
-        else    
-            obuf_tvalid = 1'b0;
-        obuf_tlast  = /*(axis_wait_newframe) ? 1'b0 :*/ fifo_out[25];
-        if (fifo_out[24] == 0 || axis_wait_newframe) begin
-            obuf_tdata[23:0] = 24'b0; 
-        end
-        else begin
-            //AXIS pixel data arrangment is R-B-G
-            obuf_tdata[23:16] = cm_port_c;
-            obuf_tdata[15:8]  = cm_port_b;
-            obuf_tdata[7:0]   = cm_port_a;    
-        end
+        
+        
+        
+//        if(~axis_wait_newframe & fifo_out[24] & ~fifo_empty)
+//            obuf_tvalid = 1'b1;
+//        else    
+//            obuf_tvalid = 1'b0;
+//        obuf_tlast  = /*(axis_wait_newframe) ? 1'b0 :*/ fifo_out[25];
+//        if (fifo_out[24] == 0 || axis_wait_newframe) begin
+//            //obuf_tdata[23:0] = 24'b0; 
+//        end
+//        else begin
+//            //AXIS pixel data arrangment is R-B-G
+//            obuf_tdata[23:16] = cm_port_c;
+//            obuf_tdata[15:8]  = cm_port_b;
+//            obuf_tdata[7:0]   = cm_port_a;    
+//        end
 
     end
     
