@@ -88,7 +88,7 @@ module cam_in_axi4s #
     
     
     // EoL detection
-    assign EoL = iibuf_dval & ~ibuf_dval;
+    assign EoL = iibuf_lval & ~ibuf_lval;
     
     always @ (posedge cam_clk) begin
         // SoL detection
@@ -213,17 +213,18 @@ module cam_in_axi4s #
 //    assign m_axis_tlast       = obuf_tlast;
 //    assign m_axis_tuser       = obuf_tuser;
 
-    assign m_axis_tuser        = obuf_tuser;
+    assign m_axis_tvalid       = ~axis_wait_newframe & fifo_out[24] & ~fifo_empty;
+    assign m_axis_tlast        = fifo_out[25];  
+    assign m_axis_tuser        = fifo_out[26];
     
     assign m_axis_tdata[23:16] = cm_port_c;
     assign m_axis_tdata[15:8]  = cm_port_b;
     assign m_axis_tdata[7:0]   = cm_port_a;
-    assign m_axis_tvalid       = ~axis_wait_newframe & fifo_out[24] & ~fifo_empty;
-    assign m_axis_tlast        = fifo_out[25];
+    
 
     
     always @ (posedge aclk) begin
-        obuf_tuser = fifo_out[26];
+        //obuf_tuser = fifo_out[26];
         
         
         
@@ -251,7 +252,7 @@ module cam_in_axi4s #
     always @ (posedge aclk) begin
         rst <= ~aresetn;
         rst_busy_aclk <= rst | (~(~fifo_rdrstbusy) & rst_busy_aclk);
-        axis_wait_newframe <= rst | (~(obuf_tuser) & axis_wait_newframe);
+        axis_wait_newframe <= rst | (~(m_axis_tuser) & axis_wait_newframe);
     end
     
     always @ (posedge cam_clk) begin
