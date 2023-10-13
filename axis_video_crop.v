@@ -31,9 +31,16 @@ module axis_video_crop #
     output wire                   m_axis_tvalid,
     input  wire                   m_axis_tready,
     output wire                   m_axis_tlast,
-    output wire [USER_WIDTH-1:0]  m_axis_tuser
+    output wire [USER_WIDTH-1:0]  m_axis_tuser,
+    
+    
+    output wire [15:0]            pixel_ptr,
+    output wire [15:0]            hor_ptr,
+    output wire [15:0]            ver_ptr
 );
 
+    reg rst;
+    
     reg [15:0] pixel_cnt = 0;
     reg [15:0] h_ptr     = 0;
     reg [15:0] v_ptr     = 0;
@@ -43,11 +50,24 @@ module axis_video_crop #
     reg                  buf_tuser;
     reg                  buf_tlast;
     reg                  buf_tvalid;
+    
     reg                  buf_tready;
+    
+    
+    always @ (posedge axis_clk) begin
+        if (aresetn == 0)
+            rst = 1;
+        else begin
+            if (s_axis_tuser & s_axis_tvalid == 1)
+                rst = 0;
+            else
+                rst = rst;
+        end
+    end
     
     // Pointers
     always @ (posedge axis_clk) begin
-        if (s_axis_tuser && s_axis_tvalid) begin
+        if (rst) begin
             pixel_cnt = 0;
             h_ptr     = 0;
             v_ptr     = 0;
@@ -67,7 +87,14 @@ module axis_video_crop #
     assign s_axis_tready = buf_tready;
     
     always @ (posedge axis_clk) begin
-        if( v_ptr < V_OFFSET || v_ptr >= V_OFFSET + VIDEO_OUT_H  || 
+        if (rst) begin  
+            buf_tdata  = 0;
+            buf_tready = 1;
+            buf_tvalid = 0;
+            buf_tuser  = 0;
+            buf_tlast  = 0;
+        end
+        else if( v_ptr < V_OFFSET || v_ptr >= V_OFFSET + VIDEO_OUT_H  || 
             h_ptr < H_OFFSET || h_ptr >= H_OFFSET + VIDEO_OUT_W
         ) begin
             buf_tready = m_axis_tready;
