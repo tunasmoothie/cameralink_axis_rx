@@ -38,83 +38,50 @@ module axis_video_crop #
     output wire [15:0]            hor_ptr,
     output wire [15:0]            ver_ptr
 );
-
-    reg rst;
-    
+   
     reg [15:0] pixel_cnt = 0;
     reg [15:0] h_ptr     = 0;
     reg [15:0] v_ptr     = 0;
     
-
-    reg [DATA_WIDTH-1:0] buf_tdata;
-    reg                  buf_tuser;
-    reg                  buf_tlast;
-    reg                  buf_tvalid;
+    reg  rst = 1;
+    wire open_path;
     
-    reg                  buf_tready;
+    assign open_path = m_axis_tready & s_axis_tvalid;
     
-    
-    always @ (posedge axis_clk) begin
-        if (aresetn == 0)
-            rst = 1;
-        else begin
-            if (s_axis_tuser & s_axis_tvalid == 1)
-                rst = 0;
-            else
-                rst = rst;
-        end
-    end
-    
-    // Pointers
-    always @ (posedge axis_clk) begin
-        if (rst) begin
-            pixel_cnt = 0;
-            h_ptr     = 0;
-            v_ptr     = 0;
-        end
-        else if (s_axis_tvalid && m_axis_tready) begin
-            pixel_cnt = pixel_cnt + 1;
-            h_ptr = (h_ptr + 1) % VIDEO_IN_W;
-            v_ptr = pixel_cnt / VIDEO_IN_W;
-        end  
-    end
-
-    
-    assign m_axis_tdata  = buf_tdata;
-    assign m_axis_tvalid = buf_tvalid;
-    assign m_axis_tuser  = buf_tuser;
-    assign m_axis_tlast  = buf_tlast;
-    assign s_axis_tready = buf_tready;
+    assign pixel_ptr = pixel_cnt;
+    assign hor_ptr = h_ptr;
+    assign ver_ptr = v_ptr;
+       
     
     always @ (posedge axis_clk) begin
-        if (rst) begin  
-            buf_tdata  = 0;
-            buf_tready = 1;
-            buf_tvalid = 0;
-            buf_tuser  = 0;
-            buf_tlast  = 0;
+        if (!aresetn) rst = 1;
+        else if (rst) begin
+            if (s_axis_tuser) rst = 0;
+            else rst = rst;
         end
-        else if( v_ptr < V_OFFSET || v_ptr >= V_OFFSET + VIDEO_OUT_H  || 
-            h_ptr < H_OFFSET || h_ptr >= H_OFFSET + VIDEO_OUT_W
-        ) begin
-            buf_tready = m_axis_tready;
-            buf_tvalid = 0;
-            buf_tuser  = 0;
-            buf_tlast  = 0;
-        end
-        else begin
-            if (s_axis_tvalid && m_axis_tready) begin
-                buf_tready = m_axis_tready;
-                buf_tvalid = 1;
-                buf_tdata  = s_axis_tdata;
-                buf_tuser = (h_ptr == H_OFFSET && v_ptr == V_OFFSET) ? 1 : 0;
-                buf_tlast = (h_ptr == (H_OFFSET + VIDEO_OUT_W) - 1 ) ? 1 : 0;
+        
+        if (open_path) begin
+            if (s_axis_tuser & s_axis_tvalid) begin
+                pixel_cnt = 0;
+                h_ptr     = 0;
+                v_ptr     = 0;
             end
             else begin
-                buf_tvalid = s_axis_tvalid;
-                buf_tready = m_axis_tready;
+                pixel_cnt = pixel_cnt + 1;
+                h_ptr = (h_ptr + 1) % VIDEO_IN_W;
+                v_ptr = pixel_cnt / VIDEO_IN_W;
             end
         end
-     end
-  
+    end
+    
+    
+    assign m_axis_tvalid = !rst & 
+                           s_axis_tvalid & 
+                           !( v_ptr < V_OFFSET || v_ptr >= V_OFFSET + VIDEO_OUT_H  || 
+                           h_ptr < H_OFFSET || h_ptr >= H_OFFSET + VIDEO_OUT_W  );
+    assign s_axis_tready = m_axis_tready;
+    assign m_axis_tuser  = (h_ptr == H_OFFSET && v_ptr == V_OFFSET) ? 1 : 0;
+    assign m_axis_tlast  = (h_ptr == (H_OFFSET + VIDEO_OUT_W) - 1 ) ? 1 : 0;
+    assign m_axis_tdata  = s_axis_tdata;
+    
 endmodule
